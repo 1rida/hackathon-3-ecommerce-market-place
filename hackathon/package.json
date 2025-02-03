@@ -20,7 +20,8 @@
     "react-dom": "^18",
     "react-router-dom": "^6.28.2",
     "sanity": "^3.70.0",
-    "styled-components": "^6.1.14"
+    "styled-components": "^6.1.14",
+    "react-icons": "^4.10.1"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -1,18 +1,19 @@
 'use client'; // Required for React hooks in Next.js
 
 import { useState, JSX } from "react";
+import Image from "next/image";
+import { client } from "@/sanity/lib/client";
+import { urlFor } from "@/sanity/lib/image";
 
+// Type definition for product
 type Product = {
   name: string;
   id: string;
   price: number;
   description: string;
   category: string;
-  image: string;
+  image: string | null; // Image might be null
 };
-import { client } from "@/sanity/lib/client";
-import { urlFor } from "@/sanity/lib/image";
-import Image from "next/image";
 
 const page = async ({
   params,
@@ -28,8 +29,15 @@ const page = async ({
     "image": image.asset._ref
   }[0]`;
 
-  const product: Product | null = await client.fetch(query, { id: params.id });
+  let product: Product | null = null;
 
+  try {
+    product = await client.fetch(query, { id: params.id });
+  } catch (error) {
+    console.error('Error fetching product:', error);
+  }
+
+  // If no product found or data is invalid
   if (!product) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100">
@@ -55,13 +63,19 @@ const ProductPage = ({ product }: { product: Product }) => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Product Image */}
           <div className="flex justify-center">
-            <Image
-              src={urlFor(product.image).url()}
-              alt={product.name}
-              width={500}
-              height={500}
-              className="object-contain rounded-lg shadow-lg transition-transform duration-300 hover:scale-105"
-            />
+            {product.image ? (
+              <Image
+                src={urlFor(product.image).url()}
+                alt={product.name}
+                width={500}
+                height={500}
+                className="object-contain rounded-lg shadow-lg transition-transform duration-300 hover:scale-105"
+              />
+            ) : (
+              <div className="w-64 h-64 bg-gray-300 rounded-lg flex items-center justify-center">
+                <span className="text-gray-500">No Image Available</span>
+              </div>
+            )}
           </div>
 
           {/* Product Details */}
@@ -126,7 +140,9 @@ const ProductPage = ({ product }: { product: Product }) => {
               </li>
             ))}
           </ul>
-          <p className="mt-4 font-bold">Total: ${cart.reduce((total, item) => total + item.price, 0)}</p>
+          <p className="mt-4 font-bold">
+            Total: ${cart.reduce((total, item) => total + item.price, 0)}
+          </p>
         </div>
       )}
     </div>
